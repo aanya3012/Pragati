@@ -2,9 +2,48 @@
 
 import { AnimatedShell } from "@/components/AnimatedShell";
 import { signIn, signUp } from "@/app/auth/actions";
+import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Chrome, LockKeyhole, Mail } from "lucide-react";
+import { useState } from "react";
 
 export default function LoginPage() {
+  const [oauthError, setOauthError] = useState<string | null>(null);
+
+  async function handleGoogleSignIn() {
+    console.log("[auth] Google sign-in clicked");
+    setOauthError(null);
+
+    try {
+      const supabase = createClient();
+      const redirectTo = `${window.location.origin}/auth/callback?next=/onboarding`;
+
+      console.log("[auth] Starting Google OAuth", { redirectTo });
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent"
+          }
+        }
+      });
+
+      if (error) {
+        console.error("[auth] Google OAuth failed", error);
+        setOauthError(error.message);
+        return;
+      }
+
+      console.log("[auth] Google OAuth redirect created", data);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Google sign-in failed.";
+      console.error("[auth] Google OAuth threw", error);
+      setOauthError(message);
+    }
+  }
+
   return (
     <main className="grid min-h-screen place-items-center px-5 py-10 text-textPrimary">
       <AnimatedShell className="grid w-full max-w-6xl overflow-hidden rounded-[34px] border border-white/10 bg-surface/82 shadow-panel backdrop-blur lg:grid-cols-[1fr_0.9fr]">
@@ -45,10 +84,17 @@ export default function LoginPage() {
           </div>
 
           <form action={signIn} className="grid gap-4">
-            <button type="button" className="flex h-12 items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] font-semibold text-textPrimary transition hover:-translate-y-0.5 hover:border-white/20">
+            <button
+              type="button"
+              onClick={handleGoogleSignIn}
+              className="flex h-12 items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] font-semibold text-textPrimary transition hover:-translate-y-0.5 hover:border-white/20"
+            >
               <Chrome size={19} />
               Continue with Google
             </button>
+            {oauthError ? (
+              <p className="rounded-2xl border border-red-400/25 bg-red-400/10 px-4 py-3 text-sm text-red-200">{oauthError}</p>
+            ) : null}
 
             <label className="grid gap-2 text-sm font-semibold text-mutedText">
               Email
