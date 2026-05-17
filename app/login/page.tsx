@@ -2,6 +2,7 @@
 
 import { AnimatedShell } from "@/components/AnimatedShell";
 import { signIn, signUp } from "@/app/auth/actions";
+import { getOAuthCallbackUrl } from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, Chrome, LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
@@ -15,7 +16,7 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      const redirectTo = `${window.location.origin}/auth/callback?next=/onboarding`;
+      const redirectTo = getOAuthCallbackUrl();
 
       console.log("[auth] Starting Google OAuth", { redirectTo });
 

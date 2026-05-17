@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/auth-redirect";
 import { redirect } from "next/navigation";
 
 export async function signIn(formData: FormData) {
@@ -26,7 +27,7 @@ export async function signUp(formData: FormData) {
     email,
     password,
     options: {
-      emailRedirectTo: "/onboarding"
+      emailRedirectTo: `${getSiteUrl()}/onboarding`
     }
   });
 
